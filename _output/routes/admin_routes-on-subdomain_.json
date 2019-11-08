@@ -1,0 +1,11 @@
+{
+    "route_type": "admin",
+    "route_prefix": "routes-on-subdomain",
+    "sub_name": "",
+    "format": ":int<route_id>/",
+    "build_class": "",
+    "build_method": "",
+    "controller": "TickTackk\\RouteOnSubdomain:RouteOnSubdomain",
+    "context": "tckRouteOnSubdomain",
+    "action_prefix": ""
+}

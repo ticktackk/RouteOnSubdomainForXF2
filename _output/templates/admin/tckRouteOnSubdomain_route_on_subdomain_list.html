@@ -1,0 +1,30 @@
+<xf:title>{{ phrase('tckRouteOnSubdomain_routes_on_subdomain') }}</xf:title>
+
+<xf:form action="{{ link('routes-on-subdomain/toggle') }}"
+		 ajax="{{ $exportView ? false : true }}" class="block">
+
+	<div class="block-outer">
+		<xf:macro template="filter_macros" name="quick_filter" arg-key="routes-on-subdomain" arg-class="block-outer-opposite" />
+	</div>
+	
+	<div class="block-container">
+		<div class="block-body">
+			<xf:datalist>
+				<xf:foreach loop="$routes" key="$route" value="$isEnabled">
+					<xf:datarow>
+						<xf:main href="#">
+							<xf:label>{$route}</xf:label>
+							<xf:explain>{$xf.request.getProtocol()}://{$route}.{$xf.request.getHost()}</xf:explain>
+						</xf:main>
+						<xf:toggle name="is_on_subdomain[{$route}]" selected="$isEnabled"
+								   class="dataList-cell--separated" submit="true"
+								   tooltip="{{ phrase('enable_disable_x', {'title': $route }) }}" />
+					</xf:datarow>
+				</xf:foreach>
+			</xf:datalist>
+		</div>
+		<div class="block-footer">
+			<span class="block-footer-counter">{{ display_totals($routes) }}</span>
+		</div>
+	</div>
+</xf:form>

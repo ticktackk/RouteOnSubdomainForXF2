@@ -1,0 +1,6 @@
+{
+    "from_class": "XF\\Repository\\Route",
+    "to_class": "TickTackk\\RouteOnSubdomain\\XF\\Repository\\Route",
+    "execute_order": 10,
+    "active": true
+}
