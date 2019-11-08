@@ -96,7 +96,7 @@ class Router extends XFCP_Router
                 if ($routesOnSubdomain[$possibleRoute] ?? false) // accessing normal url but needs to be redirected to the new url
                 {
                     $protocol = $request->getProtocol();
-                    $app->response()->header('Location', "{$protocol}://{$possibleRoute}.{$this->primaryHost}/");
+                    $app->response()->redirect("{$protocol}://{$possibleRoute}.{$this->primaryHost}/", 301);
                 }
             }
         }
