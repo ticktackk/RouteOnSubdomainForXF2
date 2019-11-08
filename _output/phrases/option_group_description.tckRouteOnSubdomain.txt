@@ -1,0 +1,1 @@
+Options that control the route on subdomain add-on.

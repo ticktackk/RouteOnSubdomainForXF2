@@ -31,7 +31,7 @@ class Router extends XFCP_Router
     /**
      * Router constructor.
      *
-     * Also sets $subDomainSupportEnabled and $primaryHost value in the class
+     * Sets $subDomainSupportEnabled and $primaryHost values.
      *
      * @param null  $linkFormatter
      * @param array $routes
@@ -42,18 +42,12 @@ class Router extends XFCP_Router
 
         $app = \XF::app();
 
-        $primaryHost = $app->config('tckRouteOnSubdomain')['primaryHost'] ?? null;
-
-        $this->subDomainSupportEnabled = $app instanceof PubApp && $app->validator('Url')->isValid($app->request()->getProtocol() . '://' . $primaryHost);
-        if ($this->subDomainSupportEnabled)
+        if ($app instanceof PubApp)
         {
-            if (\in_array(true, \array_values($app->container('router.public.routesOnSubdomain')), true))
+            $this->subDomainSupportEnabled = $app->container('router.public.allowRoutesOnSubdomain');
+            if ($this->subDomainSupportEnabled)
             {
-                $this->primaryHost = $primaryHost;
-            }
-            else
-            {
-                $this->subDomainSupportEnabled = false;
+                $this->primaryHost = $app->container('router.public.primaryHost');
             }
         }
     }

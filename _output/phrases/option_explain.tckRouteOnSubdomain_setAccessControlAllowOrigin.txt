@@ -1,0 +1,1 @@
+This option will be required when using add-on like <a href="https://xenforo.com/community/resources/6381/" target="_blank">Live Content</a> by <a href="https://xenforo.com/community/members/71874/" target="_blank">Xon</a>.
