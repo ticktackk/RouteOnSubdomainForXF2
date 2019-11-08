@@ -82,7 +82,7 @@ class AddOn
                 if ($accessControlAllowOrigin !== '*') // allow all
                 {
                     $newAccessControlAllowOrigin = $request->getProtocol() . '://' . $refererHost;
-                    if ($request->getServer('SCRIPT_NAME') === 'job.php')
+                    if ($request->getServer('SCRIPT_NAME') === '/job.php')
                     {
                         header("Access-Control-Allow-Origin: {$newAccessControlAllowOrigin}");
                         header('Vary: Origin');
