@@ -22,17 +22,20 @@ class Templater extends XFCP_Templater
     public function fnBaseUrl($templater, &$escape, $url = null, $full = false)
     {
         $app = $this->app;
-        $request = $app->request();
-        $primaryHost = $app->config('tckRouteOnSubdomain')['primaryHost'] ?? null;
         $urlPrefix = '';
 
-        if ($app instanceof PubApp &&
-            $app->validator('Url')->isValid($request->getProtocol() . '://' . $primaryHost) &&
-            $app->request()->getHost() !== $primaryHost
-        )
+        if ($app instanceof PubApp)
         {
-            $full = false;
-            $urlPrefix = $request->getProtocol() . '://' . $primaryHost;
+            $primaryHost = $app->container('router.public.primaryHost');
+            if (
+                $app->container('router.public.allowRoutesOnSubdomain') &&
+                $primaryHost !== null &&
+                $app->request()->getHost() !== $primaryHost
+            )
+            {
+                $full = false;
+                $urlPrefix = $app->request()->getProtocol() . '://' . $primaryHost;
+            }
         }
 
         return $urlPrefix . parent::fnBaseUrl($templater, $escape, $url, $full);

@@ -53,7 +53,62 @@ class Router extends XFCP_Router
     }
 
     /**
-     * Extened to parse the provided path to a route (if any set via subdomain)
+     * Finds the final route of a route.
+     *
+     * @param string $mainRoute The route for which we need to find the final route
+     *
+     * @return string The final route. Will return same as $mainRoute if no route filter available
+     */
+    protected function findFinalRoute(string $mainRoute)
+    {
+        $app = \XF::app();
+        $allRouteFilters = $app->container('routeFilters')['out'] ?? [];
+        $cleanedMainRoute = rtrim($mainRoute, '.');
+
+        foreach ($allRouteFilters AS $primaryRoute => $routeFilters)
+        {
+            foreach ($routeFilters AS $routeFilter)
+            {
+                if ($routeFilter['find_route'] === $cleanedMainRoute . '/')
+                {
+                    return $this->findFinalRoute(rtrim($routeFilter['replace_route'], '/'));
+                }
+            }
+        }
+
+        return $cleanedMainRoute;
+    }
+
+    /**
+     * Finds the main route of a route.
+     *
+     * @param string $route The route for which we need to find the real route
+     *
+     * @return string The real route. Will return same as $route if no route filter available
+     */
+    protected function findMainRoute(string $route)
+    {
+        $app = \XF::app();
+        $allRouteFilters = $app->container('routeFilters')['out'] ?? [];
+        $cleanedRoute = rtrim($route, '.');
+
+        foreach ($allRouteFilters AS $routeFilters)
+        {
+            foreach ($routeFilters AS $routeFilter)
+            {
+                if ($routeFilter['replace_route'] === $cleanedRoute . '/')
+                {
+                    $newRoute = $routeFilter['find_route'];
+                    return $this->findMainRoute(rtrim($newRoute, '/'));
+                }
+            }
+        }
+
+        return $cleanedRoute;
+    }
+
+    /**
+     * Parses subdomain into a valid path and redirects to final route when required
      *
      * @param string       $path
      * @param Request|null $request
@@ -64,39 +119,84 @@ class Router extends XFCP_Router
     {
         if ($request && $this->subDomainSupportEnabled)
         {
+            $emptyRouteMatch = $this->getNewRouteMatch();
+
             $app = \XF::app();
             $routesOnSubdomain = $app->container('router.public.routesOnSubdomain');
 
             $paths = explode('/', $path);
             $hostParts = explode($this->primaryHost, $request->getHost());
-            $routeFromSubdomain = $hostParts[0] ?? null;
+            $routeFromSubdomain = rtrim($hostParts[0] ?? '', '.');
 
             if ($routeFromSubdomain)
             {
-                $routeFromSubdomain = substr($routeFromSubdomain, 0, strlen($routeFromSubdomain) - 1);
-                if ($routesOnSubdomain[$routeFromSubdomain] ?? false)
+                $mainRoute = $this->findMainRoute($routeFromSubdomain);
+                $finalRoute = $this->findFinalRoute($mainRoute);
+
+                $isContentSpecificRouteFilter = strpos($mainRoute, '/') !== false;
+                if ($isContentSpecificRouteFilter)
+                {
+                    $mainRoute = explode('/', $mainRoute)[0] ?? $mainRoute;
+                }
+
+                if ($routeFromSubdomain !== $finalRoute)
                 {
                     if ($paths[0] === '')
                     {
                         unset($paths[0]);
                     }
 
-                    array_unshift($paths, $routeFromSubdomain); // assume the route is exists from it exists in the cache
+                    $protocol = $request->getProtocol();
+                    $redirectUrl = "{$protocol}://{$finalRoute}.{$this->primaryHost}/" . implode('/', $paths);
+                    $app->response()->redirect($redirectUrl, 301);
+
+                    return $emptyRouteMatch;
+                }
+
+                if ($routesOnSubdomain[$mainRoute] ?? false)
+                {
+                    if ($isContentSpecificRouteFilter)
+                    {
+                        array_push($paths, ...explode('/', $routeFromSubdomain));
+                        $paths = array_values($paths);
+                    }
+
+                    if ($paths[0] === '')
+                    {
+                        unset($paths[0]);
+                    }
+
+                    if (!$isContentSpecificRouteFilter)
+                    {
+                        array_unshift($paths, $mainRoute); // assume the route exists because it exists in the cache
+                    }
                     $path = implode('/', $paths);
                 }
                 else
                 {
                     // make this subdomain useless
-                    return $this->getNewRouteMatch();
+                    return $emptyRouteMatch;
                 }
             }
             else
             {
                 $possibleRoute = $paths[0];
+                if ($paths[0] === '') // default index route
+                {
+                    $possibleRoute = $this->indexRoute;
+                }
+
+                $path = implode('/', $paths);
                 if ($routesOnSubdomain[$possibleRoute] ?? false) // accessing normal url but needs to be redirected to the new url
                 {
+                    unset($paths[0]);
+                    $path = implode($paths);
+
                     $protocol = $request->getProtocol();
-                    $app->response()->redirect("{$protocol}://{$possibleRoute}.{$this->primaryHost}/", 301);
+                    $redirectUrl = "{$protocol}://{$possibleRoute}.{$this->primaryHost}/{$path}";
+                    $app->response()->redirect($redirectUrl, 301);
+
+                    return $emptyRouteMatch;
                 }
             }
         }
@@ -105,7 +205,7 @@ class Router extends XFCP_Router
     }
 
     /**
-     * Extended to maintain <route>.<host> when required
+     * Extended to maintain <route>.<host> when required. Also supports takes care of route filters.
      *
      * @param string $modifier
      * @param string $routeUrl
@@ -115,54 +215,67 @@ class Router extends XFCP_Router
      */
     public function buildFinalUrl($modifier, $routeUrl, array $parameters = [])
     {
-        if ($this->subDomainSupportEnabled && is_string($routeUrl))
+        $app = \XF::app();
+
+        $originalModifier = $modifier;
+        if ($app instanceof PubApp && $modifier === 'canonical')
         {
-            $app = \XF::app();
+            $modifier = null;
+        }
+        $finalUrl = parent::buildFinalUrl($modifier, $routeUrl, $parameters);
+        $modifier = $originalModifier; // restore
+
+        if ($app instanceof PubApp)
+        {
             $request = $app->request();
-
-            $routeFromHost = explode($this->primaryHost, $request->getHost())[0] ?? null;
-            $routeUrlParts = explode('/', $routeUrl);
-
-            if (\count($routeUrlParts) === 1) // default index
+            if ($originalModifier === 'full')
             {
-                $routeFromUrl = $app->options()->forumsDefaultPage;
-            }
-            else
-            {
-                $routeFromUrl = $routeUrlParts[0];
+                $finalUrl = parent::buildFinalUrl(null, $routeUrl, $parameters); // if the modifier is full then we need to parse it into non-full modifier based url
             }
 
-            if ($modifier === null || $modifier === 'nopath')
+            $finalUrlParts = explode('?', $finalUrl);
+            $path = $finalUrlParts[1] ?? '';
+            $pathParts = explode('/', $path);
+            $routeFromPath = $pathParts[0] ?? null;
+
+            if ($routeFromPath === '')
             {
-                $modifier = 'full';
+                $routeFromPath = rtrim($this->indexRoute, '/'); // default value is 'index' but when router when setting up app; the value is set to 'forums/' :thonk:
             }
 
-            $routesOnSubdomain = $app->container('router.public.routesOnSubdomain');
-            if (array_key_exists($routeFromUrl, $routesOnSubdomain) && $routesOnSubdomain[$routeFromUrl] === true)
+            if ($routeFromPath)
             {
-                if (\count($routeUrlParts) > 1) // if not default route
+                $finalRoute = $this->findFinalRoute($routeFromPath);
+                $mainRoute = $this->findMainRoute($finalRoute);
+                $subdomain = '';
+
+                if (\in_array($originalModifier, [null, 'full', 'canonical']))
                 {
-                    unset($routeUrlParts[0]);
+                    $routesOnSubdomain = $app->container('router.public.routesOnSubdomain');
+                    $isContentSpecificRouteFilter = strpos($mainRoute, '/') !== false;
+                    if ($isContentSpecificRouteFilter)
+                    {
+                        $mainRoute = explode('/', $mainRoute)[0] ?? $mainRoute; // forums/forum-short-name => forums
+                    }
+
+                    if (\array_key_exists($mainRoute, $routesOnSubdomain) && $routesOnSubdomain[$mainRoute] === true)
+                    {
+                        $subdomain = $finalRoute . '.';
+                        unset($pathParts[0]); // remove route from the path
+                    }
                 }
 
-                $routeUrl = implode('/', $routeUrlParts);
-                $finalUrl = parent::buildFinalUrl($modifier, $routeUrl, $parameters);
-
-                if ($routeFromHost !== $routeFromUrl)
+                $finalUrlPartsStr = rtrim(implode('?', [$finalUrlParts[0], implode('/', $pathParts)]), '?');
+                if ($originalModifier === 'nopath')
                 {
-                    $finalUrl = str_replace($routeFromHost, $routeFromUrl . '.', $finalUrl);
+                    $finalUrlPartsStr = '/' . $finalUrlPartsStr; // because we need a separator if no path or the url will be messed up
                 }
 
-                return $finalUrl;
-            }
-            else
-            {
-                $routeUrl = implode('/', $routeUrlParts);
-
-                return str_replace($routeFromHost, '', parent::buildFinalUrl($modifier, $routeUrl, $parameters));
+                $protocol = $request->getProtocol();
+                $finalUrl = "{$protocol}://{$subdomain}{$this->primaryHost}{$finalUrlPartsStr}";
             }
         }
 
-        return parent::buildFinalUrl($modifier, $routeUrl, $parameters);
+        return $finalUrl;
     }
 }
