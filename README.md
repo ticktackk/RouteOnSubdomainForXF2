@@ -10,10 +10,7 @@ $config['tckRouteOnSubdomain']['primaryHost'] = '<example.com>' // this is to di
 Replacing `<example.com>` with your own host. You'll also need to update nginx/apache/etc host configuration file to
 support wildcard.
 
-Once above lines are added you can enable routes on subdomain via ACP > Setup > Navigation > Routes on subdomain.
-
-# To-do
-* [ ] Add support for route filters
+Once changes has been made to `config.php` you can enable routes on subdomain via ACP > Setup > Navigation > Routes on subdomain.
 
 # License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
