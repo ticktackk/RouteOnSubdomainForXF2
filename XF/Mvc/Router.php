@@ -3,6 +3,7 @@
 namespace TickTackk\RouteOnSubdomain\XF\Mvc;
 
 use XF\Http\Request;
+use XF\Mvc\RouteBuiltLink;
 use XF\Mvc\RouteMatch;
 use XF\Pub\App as PubApp;
 
@@ -216,8 +217,10 @@ class Router extends XFCP_Router
     public function buildFinalUrl($modifier, $routeUrl, array $parameters = [])
     {
         $app = \XF::app();
+        $request = $app->request();
         $useFriendlyUrls = $app->options()->useFriendlyUrls;
 
+        $protocol = $request->getProtocol();
         $originalModifier = $modifier;
         if ($app instanceof PubApp && $modifier === 'canonical')
         {
@@ -226,9 +229,14 @@ class Router extends XFCP_Router
         $finalUrl = parent::buildFinalUrl($modifier, $routeUrl, $parameters);
         $modifier = $originalModifier; // restore
 
+        if ($routeUrl instanceof RouteBuiltLink)
+        {
+            $routeUrl = $routeUrl->getLink();
+            $finalUrl = ltrim(utf8_substr($routeUrl, strlen("{$protocol}://{$this->primaryHost}") + 1), '.');
+        }
+
         if ($app instanceof PubApp)
         {
-            $request = $app->request();
             if ($originalModifier === 'full')
             {
                 $finalUrl = parent::buildFinalUrl(null, $routeUrl, $parameters); // if the modifier is full then we need to parse it into non-full modifier based url
@@ -281,7 +289,6 @@ class Router extends XFCP_Router
                     $finalUrlPartsStr = '/' . $finalUrlPartsStr; // because we need a separator if no path or the url will be messed up
                 }
 
-                $protocol = $request->getProtocol();
                 $finalUrl = "{$protocol}://{$subdomain}{$this->primaryHost}{$finalUrlPartsStr}";
             }
         }
