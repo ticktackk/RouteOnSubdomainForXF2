@@ -157,7 +157,7 @@ class Router extends XFCP_Router
                 {
                     if ($isContentSpecificRouteFilter)
                     {
-                        array_push($paths, ...explode('/', $routeFromSubdomain));
+                        array_unshift($paths, $routeFromSubdomain);
                         $paths = array_values($paths);
                     }
 
