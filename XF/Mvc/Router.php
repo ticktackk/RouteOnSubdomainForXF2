@@ -231,8 +231,11 @@ class Router extends XFCP_Router
 
         if ($routeUrl instanceof RouteBuiltLink)
         {
-            $routeUrl = $routeUrl->getLink();
-            $finalUrl = ltrim(utf8_substr($routeUrl, strlen("{$protocol}://{$this->primaryHost}") + 1), '.');
+            $finalUrl = utf8_substr($routeUrl->getLink(), strlen("{$protocol}://{$this->primaryHost}"));
+            if ($useFriendlyUrls)
+            {
+                $finalUrl = ltrim($finalUrl, '.');
+            }
         }
 
         if ($app instanceof PubApp)
@@ -283,7 +286,7 @@ class Router extends XFCP_Router
                 }
 
                 $joinerChar = $useFriendlyUrls ? '/' : '?';
-                $finalUrlPartsStr = implode($joinerChar, [$finalUrlParts[0], implode('/', $pathParts)]);
+                $finalUrlPartsStr = rtrim(implode($joinerChar, [$finalUrlParts[0], implode('/', $pathParts)]), '?');
                 if ($originalModifier === 'nopath')
                 {
                     $finalUrlPartsStr = '/' . $finalUrlPartsStr; // because we need a separator if no path or the url will be messed up
