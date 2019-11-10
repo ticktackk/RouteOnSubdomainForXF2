@@ -216,6 +216,7 @@ class Router extends XFCP_Router
     public function buildFinalUrl($modifier, $routeUrl, array $parameters = [])
     {
         $app = \XF::app();
+        $useFriendlyUrls = $app->options()->useFriendlyUrls;
 
         $originalModifier = $modifier;
         if ($app instanceof PubApp && $modifier === 'canonical')
@@ -233,7 +234,15 @@ class Router extends XFCP_Router
                 $finalUrl = parent::buildFinalUrl(null, $routeUrl, $parameters); // if the modifier is full then we need to parse it into non-full modifier based url
             }
 
-            $finalUrlParts = explode('?', $finalUrl);
+            if ($useFriendlyUrls)
+            {
+                $finalUrlParts = explode('/', $finalUrl, 2);
+            }
+            else
+            {
+                $finalUrlParts = explode('?', $finalUrl);
+            }
+
             $path = $finalUrlParts[1] ?? '';
             $pathParts = explode('/', $path);
             $routeFromPath = $pathParts[0] ?? null;
@@ -265,7 +274,8 @@ class Router extends XFCP_Router
                     }
                 }
 
-                $finalUrlPartsStr = rtrim(implode('?', [$finalUrlParts[0], implode('/', $pathParts)]), '?');
+                $joinerChar = $useFriendlyUrls ? '/' : '?';
+                $finalUrlPartsStr = implode($joinerChar, [$finalUrlParts[0], implode('/', $pathParts)]);
                 if ($originalModifier === 'nopath')
                 {
                     $finalUrlPartsStr = '/' . $finalUrlPartsStr; // because we need a separator if no path or the url will be messed up
