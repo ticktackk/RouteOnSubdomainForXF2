@@ -61,7 +61,7 @@ class AddOn
         };
 
         $referer = $request->getReferrer();
-        if ($app->options()->tckRouteOnSubdomain_setAccessControlAllowOrigin && $referer && $container['router.public.allowRoutesOnSubdomain'])
+        if ($referer && $container['router.public.allowRoutesOnSubdomain'])
         {
             $refererParsed = parse_url($referer);
             $refererHost = $refererParsed['host'] ?? '';
@@ -82,15 +82,22 @@ class AddOn
                 if ($accessControlAllowOrigin !== '*') // allow all
                 {
                     $newAccessControlAllowOrigin = $request->getProtocol() . '://' . $refererHost;
-                    if ($request->getServer('SCRIPT_NAME') === '/job.php')
+                    $isCoreRequest = $request->getServer('SCRIPT_NAME') === '/index.php';
+                    $headers = [
+                        'Access-Control-Allow-Origin' => $newAccessControlAllowOrigin,
+                        'Vary' => 'Origin'
+                    ];
+
+                    foreach ($headers AS $name => $value)
                     {
-                        header("Access-Control-Allow-Origin: {$newAccessControlAllowOrigin}");
-                        header('Vary: Origin');
-                    }
-                    else
-                    {
-                        $app->response()->header('Access-Control-Allow-Origin', $newAccessControlAllowOrigin);
-                        $app->response()->header('Vary', 'Origin');
+                        if ($isCoreRequest)
+                        {
+                            $app->response()->header($name, $value);
+                        }
+                        else
+                        {
+                            header("{$name}: {$value}");
+                        }
                     }
                 }
             }
