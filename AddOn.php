@@ -85,6 +85,7 @@ class AddOn
                     $isCoreRequest = $request->getServer('SCRIPT_NAME') === '/index.php';
                     $headers = [
                         'Access-Control-Allow-Origin' => $newAccessControlAllowOrigin,
+                        'Access-Control-Allow-Credentials' => 'true',
                         'Vary' => 'Origin'
                     ];
 

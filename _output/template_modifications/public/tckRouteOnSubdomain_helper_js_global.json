@@ -1,0 +1,9 @@
+{
+    "template": "helper_js_global",
+    "description": "Update AJAX settings when doing requests to xf subdomain",
+    "execution_order": 10,
+    "enabled": true,
+    "action": "str_replace",
+    "find": "<!--XF:JS-->",
+    "replace": "$0\n\n<xf:js src=\"ticktackk/routeonsubdomain/xf/core.js\" addon=\"TickTackk/RouteOnSubdomain\" min=\"1\" />"
+}
