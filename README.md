@@ -4,7 +4,7 @@ This add-on allows setting routes to be used on specific subdomains.
 # Installation
 After installing the add-on like you would install any other add-on, you must add these lines to your `config.php`:
 ```php
-$config['cookie']['domain'] = '<example.com>'; // this is so cookies are available on every sub-domain
+$config['cookie']['domain'] = '.<example.com>'; // this is so cookies are available on every sub-domain
 $config['tckRouteOnSubdomain']['primaryHost'] = '<example.com>' // this is to differentiate real host vs. route ;
 ```
 Replacing `<example.com>` with your own host. You'll also need to update nginx/apache/etc host configuration file to
