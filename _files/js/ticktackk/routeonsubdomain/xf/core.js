@@ -18,7 +18,9 @@ TickTackk.RouteOnSubdomain = TickTackk.RouteOnSubdomain || {};
                     ajaxUrlHostLength = ajaxUrlHost.length;
 
                 if (ajaxUrlHost === fullBaseHost || (
-                    ajaxUrlHostLength > fullBaseHostLength && ajaxUrlHost.substr(ajaxUrlHostLength - fullBaseHostLength) === fullBaseHost))
+                    ajaxUrlHostLength > fullBaseHostLength &&
+                    ajaxUrlHost.substr(ajaxUrlHostLength - fullBaseHostLength) === fullBaseHost)
+                )
                 {
                     updateSettingsWith = {
                         xhrFields: {
