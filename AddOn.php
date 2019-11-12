@@ -41,7 +41,8 @@ class AddOn
 
         $container['router.public.primaryHost'] = function (Container $c) use($app)
         {
-            return $app->config('tckRouteOnSubdomain')['primaryHost'] ?? null;
+            $boardUrl = $app->options()->boardUrl;
+            return parse_url($boardUrl, PHP_URL_HOST);
         };
 
         $container['router.public.allowRoutesOnSubdomain'] = function (Container $c) use($app, $request)
@@ -63,8 +64,7 @@ class AddOn
         $referer = $request->getReferrer();
         if ($referer && $container['router.public.allowRoutesOnSubdomain'])
         {
-            $refererParsed = parse_url($referer);
-            $refererHost = $refererParsed['host'] ?? '';
+            $refererHost = parse_url($referer, PHP_URL_HOST);
             $primaryHost = $container['router.public.primaryHost'];
 
             $refererHostLen = utf8_strlen($refererHost);
