@@ -71,8 +71,11 @@ class AddOn
             $primaryHostLen = strlen($primaryHost);
 
             if (
-                $refererHost === $primaryHost ||
-                $refererHostLen > $primaryHostLen && utf8_substr($refererHost, ($refererHostLen - $primaryHostLen) - 1) === '.' . $primaryHost)
+                $refererHost === $primaryHost || (
+                    $refererHostLen > $primaryHostLen &&
+                    utf8_substr($refererHost, ($refererHostLen - $primaryHostLen) - 1) === '.' . $primaryHost
+                )
+            )
             {
                 $accessControlAllowOrigin = $app->response()->header('Access-Control-Allow-Origin');
                 if ($accessControlAllowOrigin && $accessControlAllowOrigin !== '*')
