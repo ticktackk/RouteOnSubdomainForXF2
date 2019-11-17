@@ -222,24 +222,25 @@ class Router extends XFCP_Router
 
         $protocol = $request->getProtocol();
         $originalModifier = $modifier;
-        if ($app instanceof PubApp && $modifier === 'canonical')
+        if ($this->subDomainSupportEnabled && $app instanceof PubApp && $modifier === 'canonical')
         {
             $modifier = null;
         }
         $finalUrl = parent::buildFinalUrl($modifier, $routeUrl, $parameters);
-        $modifier = $originalModifier; // restore
 
-        if ($routeUrl instanceof RouteBuiltLink)
+        if ($this->subDomainSupportEnabled && $app instanceof PubApp)
         {
-            $finalUrl = utf8_substr($routeUrl->getLink(), strlen("{$protocol}://{$this->primaryHost}"));
-            if ($useFriendlyUrls)
+            $modifier = $originalModifier; // restore
+
+            if ($routeUrl instanceof RouteBuiltLink)
             {
-                $finalUrl = ltrim($finalUrl, '.');
+                $finalUrl = utf8_substr($routeUrl->getLink(), strlen("{$protocol}://{$this->primaryHost}"));
+                if ($useFriendlyUrls)
+                {
+                    $finalUrl = ltrim($finalUrl, '.');
+                }
             }
-        }
 
-        if ($app instanceof PubApp)
-        {
             if ($originalModifier === 'full')
             {
                 $finalUrl = parent::buildFinalUrl(null, $routeUrl, $parameters); // if the modifier is full then we need to parse it into non-full modifier based url
