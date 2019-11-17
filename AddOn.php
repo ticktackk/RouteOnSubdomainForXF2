@@ -66,16 +66,18 @@ class AddOn
         {
             $refererHost = parse_url($referer, PHP_URL_HOST);
             $primaryHost = $container['router.public.primaryHost'];
-
             $refererHostLen = utf8_strlen($refererHost);
-            $primaryHostLen = strlen($primaryHost);
+            $primaryHostLen = strlen($primaryHost) + 1; // + 1 take count for hostname before '.'
+            $setHeaders = $refererHost === $primaryHost;
 
-            if (
-                $refererHost === $primaryHost || (
-                    $refererHostLen > $primaryHostLen &&
-                    utf8_substr($refererHost, ($refererHostLen - $primaryHostLen) - 1) === '.' . $primaryHost
-                )
-            )
+            if (!$setHeaders && $refererHostLen > $primaryHostLen)
+            {
+                $routesOnSubdomain = $app->container('router.public.routesOnSubdomain');
+                $routeFromSubdomain = substr($refererHost, 0, ($refererHostLen - $primaryHostLen));
+                $setHeaders = array_key_exists($routeFromSubdomain, $routesOnSubdomain) && $routesOnSubdomain[$routeFromSubdomain] === true;
+            }
+
+            if ($setHeaders)
             {
                 $accessControlAllowOrigin = $app->response()->header('Access-Control-Allow-Origin');
                 if ($accessControlAllowOrigin && $accessControlAllowOrigin !== '*')
