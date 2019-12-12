@@ -12,6 +12,8 @@ use XF\Pub\App as PubApp;
 class Templater extends XFCP_Templater
 {
     /**
+     * Extends 'base_url' template helper to take care of the base url(?)
+     *
      * @param self        $templater
      * @param bool        $escape
      * @param null|string $url
