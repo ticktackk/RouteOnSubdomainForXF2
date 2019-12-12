@@ -6,6 +6,7 @@ use XF\Http\Request;
 use XF\Mvc\RouteBuiltLink;
 use XF\Mvc\RouteMatch;
 use XF\Pub\App as PubApp;
+use XF\App as BaseApp;
 
 /**
  * Class Router
@@ -41,8 +42,7 @@ class Router extends XFCP_Router
     {
         parent::__construct($linkFormatter, $routes);
 
-        $app = \XF::app();
-
+        $app = $this->app();
         if ($app instanceof PubApp)
         {
             $this->subDomainSupportEnabled = $app->container('router.public.allowRoutesOnSubdomain');
@@ -62,7 +62,7 @@ class Router extends XFCP_Router
      */
     protected function findFinalRoute(string $mainRoute)
     {
-        $app = \XF::app();
+        $app = $this->app();
         $allRouteFilters = $app->container('routeFilters')['out'] ?? [];
         $cleanedMainRoute = rtrim($mainRoute, '.');
 
@@ -89,7 +89,7 @@ class Router extends XFCP_Router
      */
     protected function findMainRoute(string $route)
     {
-        $app = \XF::app();
+        $app = $this->app();
         $allRouteFilters = $app->container('routeFilters')['out'] ?? [];
         $cleanedRoute = rtrim($route, '.');
 
@@ -122,7 +122,7 @@ class Router extends XFCP_Router
         {
             $emptyRouteMatch = $this->getNewRouteMatch();
 
-            $app = \XF::app();
+            $app = $this->app();
             $routesOnSubdomain = $app->container('router.public.routesOnSubdomain');
 
             $paths = explode('/', $path);
@@ -216,7 +216,7 @@ class Router extends XFCP_Router
      */
     public function buildFinalUrl($modifier, $routeUrl, array $parameters = [])
     {
-        $app = \XF::app();
+        $app = $this->app();
         $request = $app->request();
         $useFriendlyUrls = $app->options()->useFriendlyUrls;
 
@@ -298,5 +298,13 @@ class Router extends XFCP_Router
         }
 
         return $finalUrl;
+    }
+
+    /**
+     * @return BaseApp
+     */
+    protected function app()
+    {
+        return \XF::app();
     }
 }
