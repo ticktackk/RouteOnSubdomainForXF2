@@ -12,6 +12,11 @@ use Throwable;
 class AccessControlAllowOriginHeaderAlreadySetException extends \RuntimeException
 {
     /**
+     * @var string
+     */
+    protected $existingValue;
+
+    /**
      * AccessControlAllowOriginHeaderAlreadySetException constructor.
      *
      * @param string         $existingValue
@@ -20,6 +25,18 @@ class AccessControlAllowOriginHeaderAlreadySetException extends \RuntimeExceptio
      */
     public function __construct(string $existingValue, int $code = 0, Throwable $previous = null)
     {
-        parent::__construct("'Access-Control-Allow-Origin' header has already been set to {$existingValue}", $code, $previous);
+        parent::__construct("'Access-Control-Allow-Origin' header has already been set.", $code, $previous);
+
+        $this->existingValue = $existingValue;
+    }
+
+    /**
+     * Retrieves the existing value
+     *
+     * @return string
+     */
+    public function getExistingValue()
+    {
+        return $this->existingValue;
     }
 }
