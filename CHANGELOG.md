@@ -1,4 +1,5 @@
-# Change log for Route on Sub-domain
+CHANGELOG
+==========================
 
 ## 1.0.0 (`1000070`)
 
