@@ -10,7 +10,7 @@
 
 * **Changed:** Check if the referrer in the header is part of current installation and if it is then check if the route is set to be on a sub-domain
 * **Fixed:** Links generated using router do not respect subDomainSupportEnabled flag (#8)
-* **Fixed:** Access-Control-Allow-Credentials not being added to header if index page is not on route (#9)
+* **Fixed:** `Access-Control-Allow-Credentials` header not being set if index page is not on route (#9)
 
 ## 1.0.0 Alpha 3 (`1000013`)
 
