@@ -1,6 +1,10 @@
 CHANGELOG
 ==========================
 
+## 1.0.1 (`1000170`)
+
+- **Fix:** AJAX fails on Internet Explorer (#10)
+
 ## 1.0.0 (`1000070`)
 
 * **Misc:** When `AccessControlAllowOriginHeaderAlreadySetException` exception is thrown, the existing value can now be read using the new `getExistingValue()` method
