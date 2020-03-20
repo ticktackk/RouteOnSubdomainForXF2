@@ -12,9 +12,16 @@ TickTackk.RouteOnSubdomain = TickTackk.RouteOnSubdomain || {};
             var updateSettingsWith = {};
             try
             {
-                var fullBaseHost = new URL(XF.config.url.fullBase).hostname,
+                var fakeFullBaseLink = $('<a />', {
+                        href: XF.config.url.fullBase
+                    }),
+                    fullBaseHost = fakeFullBaseLink[0].hostname,
                     fullBaseHostLength = fullBaseHost.length,
-                    ajaxUrlHost = new URL(settings.url).hostname,
+
+                    fakeAjaxLink = $('<a />', {
+                        href: settings.url
+                    }),
+                    ajaxUrlHost = fakeAjaxLink[0].hostname,
                     ajaxUrlHostLength = ajaxUrlHost.length;
 
                 if (ajaxUrlHost === fullBaseHost || (
