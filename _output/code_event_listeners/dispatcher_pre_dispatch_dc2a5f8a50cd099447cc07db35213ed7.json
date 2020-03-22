@@ -1,0 +1,9 @@
+{
+    "event_id": "dispatcher_pre_dispatch",
+    "execute_order": 7487,
+    "callback_class": "TickTackk\\RouteOnSubdomain\\Listener",
+    "callback_method": "dispatcherPreDispatch",
+    "active": true,
+    "hint": "",
+    "description": "Called before the app pre dispatch method is called and before the dispatch loop, allows you to modify the original RouteMatch object before it is modified."
+}
