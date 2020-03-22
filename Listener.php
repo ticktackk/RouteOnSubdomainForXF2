@@ -7,17 +7,17 @@ use TickTackk\RouteOnSubdomain\XF\Repository\Route as ExtendedRouteRepo;
 use XF\App;
 use XF\App as BaseApp;
 use XF\Container;
-use XF\Pub\App as PubApp;
 use XF\Db\Exception as DbException;
 use XF\Mvc\Dispatcher as MvcDispatcher;
 use XF\Mvc\RouteMatch as MvcRouteMatch;
+use XF\Pub\App as PubApp;
 
 /**
- * Class AddOn
+ * Class Listener
  *
  * @package TickTackk\RouteOnSubdomain
  */
-class AddOn
+class Listener
 {
     /**
      * @param BaseApp $app
