@@ -5,5 +5,5 @@
     "callback_method": "dispatcherPreDispatch",
     "active": true,
     "hint": "",
-    "description": ""
+    "description": "Called before the app pre dispatch method is called and before the dispatch loop, allows you to modify the original RouteMatch object before it is modified."
 }
