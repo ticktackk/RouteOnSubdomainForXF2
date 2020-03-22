@@ -23,5 +23,5 @@ TickTackk.RouteOnSubdomain = TickTackk.RouteOnSubdomain || {};
         }
     });
 
-                        # replace with the empty string
+    XF.Element.register('ese-autocomplete', 'XF.QuickSearch');
 }) (jQuery, window, document);

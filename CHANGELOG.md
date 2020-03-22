@@ -1,7 +1,7 @@
 CHANGELOG
 ==========================
 
-## 1.0.1 (`1000170`)
+## 1.0.2 (`1000270`)
 
 - **Fix:** CORS Preflight fails (#12)
 - **Change:** Rename App class to Listener (#13)
