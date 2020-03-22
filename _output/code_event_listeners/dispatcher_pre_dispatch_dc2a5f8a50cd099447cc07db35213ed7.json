@@ -1,6 +1,6 @@
 {
     "event_id": "dispatcher_pre_dispatch",
-    "execute_order": 10,
+    "execute_order": 7487,
     "callback_class": "TickTackk\\RouteOnSubdomain\\Listener",
     "callback_method": "dispatcherPreDispatch",
     "active": true,

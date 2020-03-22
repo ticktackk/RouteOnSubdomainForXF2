@@ -6,6 +6,7 @@ CHANGELOG
 - **Fix:** CORS Preflight fails (#12)
 - **Change:** Rename App class to Listener (#13)
 - **Change:** Code event listeners do not have description (#14)
+- **Change:** Update execution order to match resource id on XenForo.com (#15)
 
 ## 1.0.1 (`1000170`)
 

@@ -1,7 +1,7 @@
 {
     "template": "helper_attach_upload",
     "description": "Set withCredentials to true for flow",
-    "execution_order": 10,
+    "execution_order": 7487,
     "enabled": true,
     "action": "preg_replace",
     "find": "#<xf:js prod=\"xf\\/attachment_manager-compiled\\.js\".*?>#si",
