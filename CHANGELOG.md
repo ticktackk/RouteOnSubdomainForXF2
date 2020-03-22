@@ -3,6 +3,10 @@ CHANGELOG
 
 ## 1.0.1 (`1000170`)
 
+- **Fix:** CORS Preflight fails (#12)
+
+## 1.0.1 (`1000170`)
+
 - **Fix:** AJAX fails on Internet Explorer (#10)
 
 ## 1.0.0 (`1000070`)

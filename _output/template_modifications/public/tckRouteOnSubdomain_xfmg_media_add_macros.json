@@ -1,0 +1,9 @@
+{
+    "template": "xfmg_media_add_macros",
+    "description": "Set withCredentials to true for flow",
+    "execution_order": 10,
+    "enabled": true,
+    "action": "preg_replace",
+    "find": "#<xf:js prod=\"xf\\/attachment_manager-compiled\\.js\".*?>#si",
+    "replace": "$0\n<xf:js src=\"ticktackk/routeonsubdomain/xf/attachment_manager.js\" addon=\"TickTackk/RouteOnSubdomain\" min=\"1\" />"
+}
