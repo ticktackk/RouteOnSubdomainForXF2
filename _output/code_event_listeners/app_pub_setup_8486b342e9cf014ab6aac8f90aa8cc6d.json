@@ -5,5 +5,5 @@
     "callback_method": "appPubSetup",
     "active": true,
     "hint": "",
-    "description": ""
+    "description": "Called after the public \\XF\\Pub\\App object has been setup."
 }
