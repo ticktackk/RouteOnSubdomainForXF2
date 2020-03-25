@@ -1,0 +1,9 @@
+{
+    "template": "editor",
+    "description": "Update editor configuration to set value of withCredentials to true",
+    "execution_order": 7487,
+    "enabled": true,
+    "action": "str_replace",
+    "find": "<!--[XF:include_js]-->",
+    "replace": "$0\n\n<xf:js src=\"ticktackk/routeonsubdomain/xf/editor.js\" addon=\"TickTackk/RouteOnSubdomain\" min=\"1\" />"
+}
