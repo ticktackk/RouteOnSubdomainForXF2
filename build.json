@@ -3,6 +3,8 @@
         "js/ticktackk/routeonsubdomain"
     ],
     "minify": [
-        "js/ticktackk/routeonsubdomain/xf/core.js"
+        "js/ticktackk/routeonsubdomain/xf/core.js",
+        "js/ticktackk/routeonsubdomain/xf/editor.js",
+        "js/ticktackk/routeonsubdomain/xf/attachment_manager.js"
     ]
 }
