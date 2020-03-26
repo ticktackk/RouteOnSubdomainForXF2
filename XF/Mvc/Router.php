@@ -7,6 +7,7 @@ use XF\Mvc\RouteBuiltLink;
 use XF\Mvc\RouteMatch;
 use XF\Pub\App as PubApp;
 use XF\App as BaseApp;
+use XF\Util\File;
 
 /**
  * Class Router
@@ -109,6 +110,34 @@ class Router extends XFCP_Router
     }
 
     /**
+     * @param string $route
+     * @param string $path
+     * @param Request|null $request
+     *
+     * @return string
+     */
+    protected function tckRouteOnSubdomainGenerateRedirectLink(string $route, string $path, Request $request = null) : string
+    {
+        $app = $this->app();
+        $request = $request ?: $app->request();
+        $useFriendlyUrls = $app->options()->useFriendlyUrls;
+        $protocol = $request->getProtocol();
+        $redirectUrl = "{$protocol}://{$route}.{$this->primaryHost}/{$path}";
+
+        $input = $request->getInput();
+        \array_shift($input);
+        $inputStr = \http_build_query($input);
+
+        $redirectUrl .= $useFriendlyUrls ? '/' : '?index.php';
+        if ($inputStr)
+        {
+            $redirectUrl .= ($useFriendlyUrls ? '?' : '&') . $inputStr;
+        }
+
+        return $redirectUrl;
+    }
+
+    /**
      * Parses subdomain into a valid path and redirects to final route when required
      *
      * @param string       $path
@@ -146,10 +175,12 @@ class Router extends XFCP_Router
                     {
                         unset($paths[0]);
                     }
+                    $path = \implode('/', $paths);
 
-                    $protocol = $request->getProtocol();
-                    $redirectUrl = "{$protocol}://{$finalRoute}.{$this->primaryHost}/" . implode('/', $paths);
-                    $app->response()->redirect($redirectUrl, 301);
+                    $app->response()->redirect(
+                        $this->tckRouteOnSubdomainGenerateRedirectLink($finalRoute, $path),
+                        301
+                    );
 
                     return $emptyRouteMatch;
                 }
@@ -193,9 +224,10 @@ class Router extends XFCP_Router
                     unset($paths[0]);
                     $path = implode($paths);
 
-                    $protocol = $request->getProtocol();
-                    $redirectUrl = "{$protocol}://{$possibleRoute}.{$this->primaryHost}/{$path}";
-                    $app->response()->redirect($redirectUrl, 301);
+                    $app->response()->redirect(
+                        $this->tckRouteOnSubdomainGenerateRedirectLink($possibleRoute, $path),
+                        301
+                    );
 
                     return $emptyRouteMatch;
                 }

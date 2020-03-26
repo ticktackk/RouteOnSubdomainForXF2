@@ -1,6 +1,10 @@
 CHANGELOG
 ==========================
 
+##  1.0.3 (`1000370`)
+
+- **Fix:** When redirecting to route which is on a sub-domain form data is not passed to new URL (#20)
+
 ## 1.0.2 (`1000270`)
 
 - **Fix:** CORS Preflight fails (#12)
