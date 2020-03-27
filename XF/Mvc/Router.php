@@ -122,16 +122,21 @@ class Router extends XFCP_Router
         $request = $request ?: $app->request();
         $useFriendlyUrls = $app->options()->useFriendlyUrls;
         $protocol = $request->getProtocol();
-        $redirectUrl = "{$protocol}://{$route}.{$this->primaryHost}/{$path}";
+        $redirectUrl = "{$protocol}://{$route}.{$this->primaryHost}";
 
         $input = $request->getInput();
         \array_shift($input);
         $inputStr = \http_build_query($input);
 
-        $redirectUrl .= $useFriendlyUrls ? '/' : '?index.php';
+        $redirectUrl .= $useFriendlyUrls ? '/' : '/index.php';
+        if ($path)
+        {
+            $redirectUrl .= ($useFriendlyUrls ? '' : '?') . $path;
+        }
+
         if ($inputStr)
         {
-            $redirectUrl .= ($useFriendlyUrls ? '?' : '&') . $inputStr;
+            $redirectUrl .= ($useFriendlyUrls ? '/?' : '&') . $inputStr;
         }
 
         return $redirectUrl;

@@ -8,6 +8,8 @@ use XF\App;
 use XF\App as BaseApp;
 use XF\Container;
 use XF\Db\Exception as DbException;
+use XF\Http\Request;
+use XF\Http\Response;
 use XF\Mvc\Dispatcher as MvcDispatcher;
 use XF\Mvc\RouteMatch as MvcRouteMatch;
 use XF\Pub\App as PubApp;
@@ -19,6 +21,11 @@ use XF\Pub\App as PubApp;
  */
 class Listener
 {
+    /**
+     * @var null|string
+     */
+    protected static $origin = null;
+
     /**
      * @param BaseApp $app
      *
@@ -43,6 +50,12 @@ class Listener
             return \parse_url($boardUrl, PHP_URL_HOST);
         };
 
+        $container['router.public.primaryHostWithSchema'] = function (Container $c) use($app)
+        {
+            $boardUrl = $app->options()->boardUrl;
+            return \parse_url($boardUrl, \PHP_URL_SCHEME) . '://' . $c['router.public.primaryHost'];
+        };
+
         $request = $app->request();
         $container['router.public.allowRoutesOnSubdomain'] = function (Container $c) use($app, $request)
         {
@@ -59,6 +72,17 @@ class Listener
 
             return \in_array(true, \array_values($c['router.public.routesOnSubdomain']), true);
         };
+    }
+
+    /**
+     * @param string $referer
+     */
+    protected static function setOriginFromReferer(string $referer) : void
+    {
+        $scheme = \parse_url($referer, \PHP_URL_SCHEME);
+        $host = \parse_url($referer, \PHP_URL_HOST);
+
+        static::$origin = "{$scheme}://{$host}";
     }
 
     /**
@@ -88,6 +112,7 @@ class Listener
 
         if ($refererHost === $primaryHost)
         {
+            static::setOriginFromReferer($referer);
             return true;
         }
 
@@ -101,7 +126,11 @@ class Listener
                 return false;
             }
 
-            return $routesOnSubdomain[$routeFromSubdomain] === true;
+            if ($routesOnSubdomain[$routeFromSubdomain] === true)
+            {
+                static::setOriginFromReferer($referer);
+                return true;
+            }
         }
 
         return false;
@@ -139,46 +168,89 @@ class Listener
         }
 
         $request = $app->request();
-        $isCoreRequest = $request->getServer('SCRIPT_NAME') === '/index.php';
         $headers = [
-            'Access-Control-Allow-Origin' => $request->getServer('HTTP_ORIGIN'),
+            'Access-Control-Allow-Origin' => static::$origin,
             'Access-Control-Allow-Credentials' => 'true'
         ];
 
-        if ($request->getRequestMethod() === 'options')
+        $requestHeaders = [
+            ['HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'Access-Control-Allow-Request-Method'],
+            ['HTTP_ACCESS_CONTROL_REQUEST_HEADERS' => 'Access-Control-Allow-Request-Headers']
+        ];
+
+        foreach ($requestHeaders AS $headerData)
         {
-            $requestHeaders = [
-                ['Access-Control-Request-Method' => 'Access-Control-Allow-Request-Method'],
-                ['Access-Control-Request-Headers' => 'Access-Control-Allow-Request-Headers']
-            ];
+            $inServer = \key($headerData);
+            $inResponse = \reset($headerData);
+            $fallback = '*';
 
-            foreach ($requestHeaders AS $headerData )
+            if (\is_array($inResponse))
             {
-                $inRequestHeaders = \str_replace(
-                    '-', '_',
-                    \strtoupper(\array_key_first($headerData))
-                );
-                $inRequestHeaders = "HTTP_{$inRequestHeaders}";
-                $inResponseHeader = \reset($headerData);
-
-                $value = $request->getServer($inRequestHeaders, null);
-                if ($value)
-                {
-                    $headers[$inResponseHeader] = $value;
-                }
+                $fallback = $inResponse[1];
+                $inResponse = $inResponse[0];
             }
+
+            $value = $request->getServer($inServer, null);
+            $headers[$inResponse] = $value ?: $fallback;
+        }
+
+        static::setHeaders($headers, $app, null, $request);
+    }
+
+    /**
+     * @param array $headers
+     * @param BaseApp|null $app
+     * @param Response|null $response
+     * @param Request|null $request
+     */
+    protected static function setHeaders(array $headers, App $app = null, Response $response = null, Request $request = null) : void
+    {
+        if ($response === null || $request === null)
+        {
+            $app = $app ?: \XF::app();
+            $response = $response ?: $app->response();
+            $request = $request ?: $app->request();
         }
 
         foreach ($headers AS $name => $value)
         {
-            if ($isCoreRequest)
+            static::setHeader($name, $value, $app, $response, $request);
+        }
+    }
+
+    /**
+     * @param string $name
+     * @param string|array $value
+     * @param BaseApp|null $app
+     * @param Response|null $response
+     * @param Request|null $request
+     */
+    protected static function setHeader(string $name, $value, App $app = null, Response $response = null, Request $request = null) : void
+    {
+        if ($response === null || $request === null)
+        {
+            $app = $app ?: \XF::app();
+            $response = $response ?: $app->response();
+            $request = $request ?: $app->request();
+        }
+
+        if (\is_array($value))
+        {
+            $value = \array_unique($value);
+            foreach ($value AS $realValue)
             {
-                $app->response()->header($name, $value);
+                static::setHeader($name, $realValue, $app, $response, $request);
             }
-            else
-            {
-                \header("{$name}: {$value}");
-            }
+            return;
+        }
+
+        if ($request->getServer('SCRIPT_NAME') === '/index.php')
+        {
+            $response->header($name, $value);
+        }
+        else
+        {
+            \header("{$name}: {$value}");
         }
     }
 
