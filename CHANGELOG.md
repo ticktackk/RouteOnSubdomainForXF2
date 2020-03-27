@@ -1,6 +1,10 @@
 CHANGELOG
 ==========================
 
+## 1.1.0 (`1010070`)
+
+- **Change:** Increased minimum PHP requirement to 7.3
+
 ##  1.0.3 (`1000370`)
 
 - **Fix:** Pasting image from clipboard into editor fails (#18)
