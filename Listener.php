@@ -137,16 +137,17 @@ class Listener
     }
 
     /**
+     * Called after the global BaseApp object has been setup. This will fire regardless of the
+     * application type.
+     *
      * Add cached routes which are available in subdomains, primary host and if allow routes on subdomain to container
      * on setup for public xf app instance.
      *
-     * Do note that we are care only about public routes.
-     *
-     * @param PubApp $app
+     * @param BaseApp $app Global App object.
      *
      * @throws DbException
      */
-    public static function appPubSetup(PubApp $app) : void
+    public static function appSetup(BaseApp $app) : void
     {
         static::setupContainer($app);
 
