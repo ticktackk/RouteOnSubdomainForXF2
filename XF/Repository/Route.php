@@ -25,6 +25,7 @@ class Route extends XFCP_Route
             return $isActive;
         });
 
+        $app = $this->app();
         foreach ($filteredRoutesOnSubdomain AS $route => &$url)
         {
             $url = $app->router('public')->buildLink($route);
