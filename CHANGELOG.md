@@ -1,6 +1,14 @@
 CHANGELOG
 ==========================
 
+##  1.0.3 (`1000370`)
+
+- **Fix:** Pasting image from clipboard into editor fails (#18)
+- **Fix:** Minified `attachment_manager.js` is missing from release archive (#19)
+- **Fix:** When redirecting to route which is on a sub-domain form data is not passed to new URL (#20)
+- **Fix:** Public links are not generated correctly in ACP (#21)
+- **Change:** When making requests from Javascript try to generate the final target instead of getting 302 response (#22)
+
 ## 1.0.2 (`1000270`)
 
 - **Fix:** CORS Preflight fails (#12)

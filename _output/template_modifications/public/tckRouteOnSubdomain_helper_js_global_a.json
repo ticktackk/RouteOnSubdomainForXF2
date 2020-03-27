@@ -1,0 +1,9 @@
+{
+    "template": "helper_js_global",
+    "description": "Add routes which are available on XF config",
+    "execution_order": 7487,
+    "enabled": true,
+    "action": "preg_replace",
+    "find": "#publicPushBadgeUrl: '.*'#i",
+    "replace": "$0,\n\t\t\troutesOnSubdomain: {{ $xf.app.em.getRepository('XF:Route').getRoutesOnSubdomainFromCache()|json|raw }}"
+}

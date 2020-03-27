@@ -1,0 +1,9 @@
+{
+    "event_id": "app_setup",
+    "execute_order": 7487,
+    "callback_class": "TickTackk\\RouteOnSubdomain\\Listener",
+    "callback_method": "appSetup",
+    "active": true,
+    "hint": "",
+    "description": "Called after the global \\XF\\App object has been setup. This will fire regardless of the application type."
+}

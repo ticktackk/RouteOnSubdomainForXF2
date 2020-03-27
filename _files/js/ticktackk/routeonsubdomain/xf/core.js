@@ -9,30 +9,54 @@ TickTackk.RouteOnSubdomain = TickTackk.RouteOnSubdomain || {};
     {
         if ('url' in settings)
         {
-            var updateSettingsWith = {};
+            var ajaxUrl = settings.url,
+                updateSettingsWith = {};
+
             try
             {
-                var fakeFullBaseLink = $('<a />', {
+                var routesOnSubdomain = XF.config.routesOnSubdomain,
+                    fullBase = XF.config.url.fullBase + 'index.php?',
+                    withCredentials = null,
+
+                    fakeFullBaseLink = $('<a />', {
                         href: XF.config.url.fullBase
                     }),
                     fullBaseHost = fakeFullBaseLink[0].hostname,
                     fullBaseHostLength = fullBaseHost.length,
 
                     fakeAjaxLink = $('<a />', {
-                        href: settings.url
+                        href: ajaxUrl
                     }),
                     ajaxUrlHost = fakeAjaxLink[0].hostname,
                     ajaxUrlHostLength = ajaxUrlHost.length;
 
-                if (ajaxUrlHost === fullBaseHost || (
+                if (ajaxUrl.startsWith(fullBase) && typeof routesOnSubdomain === 'object' && routesOnSubdomain.length !== 0)
+                {
+                    $.each(routesOnSubdomain, function (route, finalFullBase)
+                    {
+                        if (ajaxUrl.startsWith(fullBase + route + '/'))
+                        {
+                            ajaxUrl = ajaxUrl.substring(fullBase.length + (route + '/').length);
+                            ajaxUrl = finalFullBase + 'index.php?' + ajaxUrl;
+                            updateSettingsWith.url = ajaxUrl;
+                            withCredentials = true;
+                            
+                            return false;
+                        }
+                    });
+                }
+                else if (ajaxUrlHost === fullBaseHost || (
                     ajaxUrlHostLength > fullBaseHostLength &&
                     ajaxUrlHost.substr(ajaxUrlHostLength - fullBaseHostLength) === fullBaseHost)
                 )
                 {
-                    updateSettingsWith = {
-                        xhrFields: {
-                            withCredentials: true
-                        }
+                    withCredentials = true;
+                }
+
+                if (withCredentials !== null)
+                {
+                    updateSettingsWith.xhrFields = {
+                        withCredentials: withCredentials
                     };
                 }
             }
