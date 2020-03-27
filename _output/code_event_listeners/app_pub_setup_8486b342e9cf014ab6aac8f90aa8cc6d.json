@@ -1,9 +1,0 @@
-{
-    "event_id": "app_pub_setup",
-    "execute_order": 7487,
-    "callback_class": "TickTackk\\RouteOnSubdomain\\Listener",
-    "callback_method": "appPubSetup",
-    "active": true,
-    "hint": "",
-    "description": "Called after the public \\XF\\Pub\\App object has been setup."
-}

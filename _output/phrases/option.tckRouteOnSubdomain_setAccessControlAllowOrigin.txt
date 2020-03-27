@@ -1,1 +1,0 @@
-Set <code>Access-Control-Allow-Origin</code> header value
