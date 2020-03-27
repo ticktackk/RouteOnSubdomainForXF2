@@ -9,17 +9,28 @@ TickTackk.RouteOnSubdomain = TickTackk.RouteOnSubdomain || {};
     {
         if ('url' in settings)
         {
+            var ajaxUrl = settings.url,
+                updateSettingsWith = {};
+
             try
             {
-                var ajaxUrl = settings.url,
-                    originalAjaxUrl = ajaxUrl,
-                    routesOnSubdomain = XF.config.routesOnSubdomain,
+                var routesOnSubdomain = XF.config.routesOnSubdomain,
                     fullBase = XF.config.url.fullBase + 'index.php?',
-                    relativeUrl = null;
+                    withCredentials = null,
 
-                if (ajaxUrl.startsWith(fullBase)
-                    && typeof routesOnSubdomain === 'object' && routesOnSubdomain.length !== 0
-                )
+                    fakeFullBaseLink = $('<a />', {
+                        href: XF.config.url.fullBase
+                    }),
+                    fullBaseHost = fakeFullBaseLink[0].hostname,
+                    fullBaseHostLength = fullBaseHost.length,
+
+                    fakeAjaxLink = $('<a />', {
+                        href: ajaxUrl
+                    }),
+                    ajaxUrlHost = fakeAjaxLink[0].hostname,
+                    ajaxUrlHostLength = ajaxUrlHost.length;
+
+                if (ajaxUrl.startsWith(fullBase) && typeof routesOnSubdomain === 'object' && routesOnSubdomain.length !== 0)
                 {
                     $.each(routesOnSubdomain, function (route, finalFullBase)
                     {
@@ -27,27 +38,35 @@ TickTackk.RouteOnSubdomain = TickTackk.RouteOnSubdomain || {};
                         {
                             ajaxUrl = ajaxUrl.substring(fullBase.length + (route + '/').length);
                             ajaxUrl = finalFullBase + 'index.php?' + ajaxUrl;
-
-                            console.info('Switched AJAX url from '
-                                + XF.htmlspecialchars(originalAjaxUrl)
-                                + ' to '
-                                + XF.htmlspecialchars(ajaxUrl)
-                            );
-
-                            settings.url = ajaxUrl;
-                            if (typeof settings.xhrFields === 'undefined')
-                            {
-                                settings.xhrFields = {};
-                            }
-
-                            settings.xhrFields.withCredentials = true;
+                            updateSettingsWith.url = ajaxUrl;
+                            withCredentials = true;
+                            
+                            return false;
                         }
                     });
+                }
+                else if (ajaxUrlHost === fullBaseHost || (
+                    ajaxUrlHostLength > fullBaseHostLength &&
+                    ajaxUrlHost.substr(ajaxUrlHostLength - fullBaseHostLength) === fullBaseHost)
+                )
+                {
+                    withCredentials = true;
+                }
+
+                if (withCredentials !== null)
+                {
+                    updateSettingsWith.xhrFields = {
+                        withCredentials: withCredentials
+                    };
                 }
             }
             catch (e)
             {
                 // just why
+            }
+            finally
+            {
+                $.extend(settings, updateSettingsWith);
             }
         }
     });
