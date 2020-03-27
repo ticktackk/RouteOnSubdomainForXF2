@@ -19,12 +19,6 @@ class Route extends XFCP_Route
      */
     public function getRoutesOnSubdomainFromCache() : array
     {
-        $app = $this->app();
-        if (!$app instanceof PubApp)
-        {
-            return [];
-        }
-
         $routesOnSubdomain = $this->app()->container('router.public.routesOnSubdomain');
         $filteredRoutesOnSubdomain = \array_filter($routesOnSubdomain, function ($isActive) use($app)
         {
