@@ -27,116 +27,6 @@ class Listener
     protected static $origin = null;
 
     /**
-     * @param BaseApp $app
-     *
-     * @throws DbException
-     */
-    protected static function setupContainer(App $app) : void
-    {
-        $container = $app->container();
-
-        $container['router.public.routesOnSubdomain'] = $app->fromRegistry('publicRoutesOnSubdomain',
-            function (Container $c)
-            {
-                /** @var ExtendedRouteRepo $routeRepo */
-                $routeRepo  = $c['em']->getRepository('XF:Route');
-                return $routeRepo->rebuildRouteOnSubdomainCache();
-            }
-        );
-
-        $container['router.public.primaryHost'] = function (Container $c) use($app)
-        {
-            $boardUrl = $app->options()->boardUrl;
-            return \parse_url($boardUrl, PHP_URL_HOST);
-        };
-
-        $container['router.public.primaryHostWithSchema'] = function (Container $c) use($app)
-        {
-            $boardUrl = $app->options()->boardUrl;
-            return \parse_url($boardUrl, \PHP_URL_SCHEME) . '://' . $c['router.public.primaryHost'];
-        };
-
-        $request = $app->request();
-        $container['router.public.allowRoutesOnSubdomain'] = function (Container $c) use($app, $request)
-        {
-            $primaryHost = $c['router.public.primaryHost'];
-            if (!$primaryHost)
-            {
-                return false;
-            }
-
-            if (!$app->validator('Url')->isValid($request->getProtocol() . '://' . $primaryHost))
-            {
-                return false;
-            }
-
-            return \in_array(true, \array_values($c['router.public.routesOnSubdomain']), true);
-        };
-    }
-
-    /**
-     * @param string $referer
-     */
-    protected static function setOriginFromReferer(string $referer) : void
-    {
-        $scheme = \parse_url($referer, \PHP_URL_SCHEME);
-        $host = \parse_url($referer, \PHP_URL_HOST);
-
-        static::$origin = "{$scheme}://{$host}";
-    }
-
-    /**
-     * @param BaseApp $app
-     *
-     * @return bool
-     */
-    protected static function isValidRefererOrOrigin(App $app) : bool
-    {
-        $request = $app->request();
-        $referer = $request->getReferrer() ?: $request->getServer('HTTP_ORIGIN');
-        if (!$referer)
-        {
-            return false;
-        }
-
-        $container = $app->container();
-        if (!$container['router.public.allowRoutesOnSubdomain'])
-        {
-            return false;
-        }
-
-        $refererHost = \parse_url($referer, \PHP_URL_HOST);
-        $primaryHost = $container['router.public.primaryHost'];
-        $refererHostLen = utf8_strlen($refererHost);
-        $primaryHostLen = strlen($primaryHost) + 1; // + 1 take count for hostname before '.'
-
-        if ($refererHost === $primaryHost)
-        {
-            static::setOriginFromReferer($referer);
-            return true;
-        }
-
-        if ($refererHostLen > $primaryHostLen)
-        {
-            $routesOnSubdomain = $app->container('router.public.routesOnSubdomain');
-            $routeFromSubdomain = substr($refererHost, 0, ($refererHostLen - $primaryHostLen));
-
-            if (!\array_key_exists($routeFromSubdomain, $routesOnSubdomain))
-            {
-                return false;
-            }
-
-            if ($routesOnSubdomain[$routeFromSubdomain] === true)
-            {
-                static::setOriginFromReferer($referer);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Called after the global BaseApp object has been setup. This will fire regardless of the
      * application type.
      *
@@ -196,6 +86,116 @@ class Listener
         }
 
         static::setHeaders($headers, $app, null, $request);
+    }
+
+    /**
+     * @param BaseApp $app
+     *
+     * @throws DbException
+     */
+    protected static function setupContainer(App $app) : void
+    {
+        $container = $app->container();
+
+        $container['router.public.routesOnSubdomain'] = $app->fromRegistry('publicRoutesOnSubdomain',
+            function (Container $c)
+            {
+                /** @var ExtendedRouteRepo $routeRepo */
+                $routeRepo  = $c['em']->getRepository('XF:Route');
+                return $routeRepo->rebuildRouteOnSubdomainCache();
+            }
+        );
+
+        $container['router.public.baseHostWithSchema'] = function (Container $c) use($app)
+        {
+            $options = $app->options();
+            $baseUrl = $options->tckRouteOnSubdomain_baseUrl;
+
+            if (!$baseUrl)
+            {
+                $baseUrl = $options->boardUrl;
+            }
+
+            return $baseUrl;
+        };
+
+        $container['router.public.baseHost'] = function (Container $c) use($app)
+        {
+            return \parse_url($c['router.public.baseHostWithSchema'], PHP_URL_HOST);
+        };
+
+        $container['router.public.hasRoutesOnSubdomain'] = function (Container $c) use($app)
+        {
+            $baseHost = $c['router.public.baseHostWithSchema'];
+            if (!$app->validator('Url')->isValid($baseHost))
+            {
+                return false;
+            }
+
+            return \in_array(true, \array_values($c['router.public.routesOnSubdomain']), true);
+        };
+    }
+
+    /**
+     * @param BaseApp $app
+     *
+     * @return bool
+     */
+    protected static function isValidRefererOrOrigin(App $app) : bool
+    {
+        $request = $app->request();
+        $referer = $request->getReferrer() ?: $request->getServer('HTTP_ORIGIN');
+        if (!$referer)
+        {
+            return false;
+        }
+
+        $container = $app->container();
+        if (!$container['router.public.hasRoutesOnSubdomain'])
+        {
+            return false;
+        }
+
+        $refererHost = \parse_url($referer, \PHP_URL_HOST);
+        $baseHost = $container['router.public.baseHost'];
+        $refererHostLen = utf8_strlen($refererHost);
+        $baseHostLen = strlen($baseHost) + 1; // + 1 take count for hostname before '.'
+
+        if ($refererHost === $baseHost)
+        {
+            static::setOriginFromReferer($referer);
+            return true;
+        }
+
+        if ($refererHostLen > $baseHostLen)
+        {
+            $routesOnSubdomain = $app->container('router.public.routesOnSubdomain');
+            $routeFromSubdomain = substr($refererHost, 0, ($refererHostLen - $baseHostLen));
+
+            if (!\array_key_exists($routeFromSubdomain, $routesOnSubdomain))
+            {
+                return false;
+            }
+
+            if ($routesOnSubdomain[$routeFromSubdomain] === true)
+            {
+                static::setOriginFromReferer($referer);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $referer
+     */
+    protected static function setOriginFromReferer(string $referer) : void
+    {
+        $scheme = \parse_url($referer, \PHP_URL_SCHEME);
+        $host = \parse_url($referer, \PHP_URL_HOST);
+
+        static::$origin = "{$scheme}://{$host}";
     }
 
     /**

@@ -3,6 +3,7 @@ CHANGELOG
 
 ## 1.1.0 (`1010070`)
 
+- **New:** Allow setting base URL in Admin control panel (#7)
 - **Change:** Increased minimum PHP requirement to 7.3
 
 ##  1.0.3 (`1000370`)

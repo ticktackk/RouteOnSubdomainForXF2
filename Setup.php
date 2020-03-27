@@ -7,6 +7,8 @@ use XF\AddOn\StepRunnerInstallTrait;
 use XF\AddOn\StepRunnerUninstallTrait;
 use XF\AddOn\StepRunnerUpgradeTrait;
 use XF\Db\Schema\Create;
+use XF\Mvc\Entity\Repository;
+use XF\Repository\Option as OptionRepo;
 
 /**
  * Class Setup
@@ -37,5 +39,62 @@ class Setup extends AbstractSetup
         $sm = $this->schemaManager();
 
         $sm->dropTable('xf_tck_route_on_subdomain');
+    }
+
+    /**
+     * @param array $stateChanges
+     */
+    public function postInstall(array &$stateChanges) : void
+    {
+        $this->updateBaseUrlOptionToFallback();
+    }
+
+    /**
+     * @param int|null $previousVersion
+     * @param array $stateChanges
+     */
+    public function postUpgrade($previousVersion, array &$stateChanges) : void
+    {
+        if ($previousVersion < 1010070)
+        {
+            $this->updateBaseUrlOptionToFallback();
+        }
+    }
+
+    protected function updateBaseUrlOptionToFallback() : void
+    {
+        $boardUrl = $this->app()->options()->boardUrl;
+        $boardUrlParsed = \parse_url($boardUrl);
+
+        $baseUrl = $boardUrl;
+        if (\utf8_substr($boardUrlParsed['host'], 0, 4) === 'www.')
+        {
+            $baseUrl = \preg_replace(
+                '/' . \preg_quote($boardUrlParsed['host']) . '/i',
+                \utf8_substr($boardUrlParsed['host'], 4),
+                $boardUrl
+            );
+        }
+
+        $optionRepo = $this->getOptionRepo();
+        $optionRepo->updateOption('tckRouteOnSubdomain_baseUrl', $baseUrl);
+    }
+
+    /**
+     * @param string $identifier
+     *
+     * @return Repository
+     */
+    protected function repository(string $identifier) : Repository
+    {
+        return $this->app()->repository($identifier);
+    }
+
+    /**
+     * @return Repository|OptionRepo
+     */
+    protected function getOptionRepo() : OptionRepo
+    {
+        return $this->repository('XF:Option');
     }
 }

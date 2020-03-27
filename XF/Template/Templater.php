@@ -28,15 +28,14 @@ class Templater extends XFCP_Templater
 
         if ($app instanceof PubApp)
         {
-            $primaryHost = $app->container('router.public.primaryHost');
+            $baseHost = $app->container('router.public.baseHost');
             if (
-                $app->container('router.public.allowRoutesOnSubdomain') &&
-                $primaryHost !== null &&
-                $app->request()->getHost() !== $primaryHost
+                $app->container('router.public.hasRoutesOnSubdomain') &&
+                $app->request()->getHost() !== $baseHost
             )
             {
                 $full = false;
-                $urlPrefix = $app->request()->getProtocol() . '://' . $primaryHost;
+                $urlPrefix = $app->request()->getProtocol() . '://' . $baseHost;
             }
         }
 

@@ -1,0 +1,12 @@
+{
+    "edit_format": "textbox",
+    "edit_format_params": "type=url",
+    "data_type": "string",
+    "sub_options": [],
+    "validation_class": "",
+    "validation_method": "",
+    "default_value": "",
+    "relations": {
+        "basicBoard": 29
+    }
+}
