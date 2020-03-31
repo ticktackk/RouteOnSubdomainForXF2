@@ -19,7 +19,7 @@ class Templater extends XFCP_Templater
      * @param null|string $url
      * @param bool        $full
      *
-     * @return mixed
+     * @return string
      */
     public function fnBaseUrl($templater, &$escape, $url = null, $full = false)
     {

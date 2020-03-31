@@ -5,7 +5,6 @@ namespace TickTackk\RouteOnSubdomain\XF\Repository;
 use XF\Entity\Route as RouteEntity;
 use TickTackk\RouteOnSubdomain\Entity\RouteOnSubdomain as RouteOnSubdomainEntity;
 use XF\Mvc\Entity\ArrayCollection;
-use XF\Pub\App as PubApp;
 
 /**
  * Class Route
@@ -20,12 +19,12 @@ class Route extends XFCP_Route
     public function getRoutesOnSubdomainFromCache() : array
     {
         $routesOnSubdomain = $this->app()->container('router.public.routesOnSubdomain');
+        $app = $this->app();
         $filteredRoutesOnSubdomain = \array_filter($routesOnSubdomain, function ($isActive) use($app)
         {
             return $isActive;
         });
 
-        $app = $this->app();
         foreach ($filteredRoutesOnSubdomain AS $route => &$url)
         {
             $url = $app->router('public')->buildLink($route);
@@ -58,7 +57,7 @@ class Route extends XFCP_Route
     public function getRoutesForSubdomain() : ArrayCollection
     {
         $db = $this->db();
-        $db->beginTransaction();;
+        $db->beginTransaction();
 
         /** @var ArrayCollection|RouteEntity[] $routes */
         $routes = $this->findRoutesForList()
